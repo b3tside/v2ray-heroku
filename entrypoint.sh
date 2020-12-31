@@ -1,5 +1,15 @@
 #! /bin/bash
 set -ex
+if [[ -z "${SERVER_PORT}" ]]; then
+  SERVER_PORT="2333"
+fi
+echo ${SERVER_PORT}
+
+if [[ -z "${SNI_BUG}" ]]; then
+  SNI_BUG="youtube.com"
+fi
+echo ${SNI_BUG}
+
 if [[ -z "${VER}" ]]; then
   VER="latest"
 fi
@@ -69,7 +79,7 @@ cat <<-EOF > /v2raybin/config.json
     "inbound":{
         "protocol":"vmess",
         "listen":"127.0.0.1",
-        "port":443,
+        "port":$SERVER_PORT,
         "settings":{
             "clients":[
                 {
@@ -84,7 +94,7 @@ cat <<-EOF > /v2raybin/config.json
 	    	"security": "tls",
             	"tlsSettings": {
           	"allowInsecure": true,
-          	"serverName": "youtube.com"
+          	"serverName": $SNI_BUG
         },
             "wsSettings":{
                 "path":"${V2_Path}"
@@ -109,12 +119,12 @@ echo /v2raybin/config.json
 cat /v2raybin/config.json
 
 cat <<-EOF > /caddybin/Caddyfile
-http://0.0.0.0:${PORT}
+http://0.0.0.0:$SERVER_PORT
 {
 	root /wwwroot
 	index index.html
 	timeouts none
-	proxy ${V2_Path} localhost:2333 {
+	proxy ${V2_Path} localhost:$SERVER_PORT {
 		websocket
 		header_upstream -Origin
 	}
@@ -126,7 +136,7 @@ cat <<-EOF > /v2raybin/vmess.json
     "v": "2",
     "ps": "${AppName}.herokuapp.com",
     "add": "${AppName}.herokuapp.com",
-    "port": "443",
+    "port":$SERVER_PORT,
     "id": "${UUID}",
     "aid": "${AlterID}",
     "net": "ws",

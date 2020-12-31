@@ -26,7 +26,7 @@ fi
 echo ${V2_QR_Path}
 
 rm -rf /etc/localtime
-ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+ln -sf /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
 date -R
 
 
@@ -44,7 +44,7 @@ wget --no-check-certificate -qO 'v2ray.zip' ${V2RAY_URL}
 unzip v2ray.zip
 rm -rf v2ray.zip
 
-C_VER="v1.0.3"
+C_VER="v2.2.1"
 mkdir /caddybin
 cd /caddybin
 CADDY_URL="https://github.com/caddyserver/caddy/releases/download/$C_VER/caddy_${C_VER}_linux_amd64.tar.gz"
@@ -60,13 +60,16 @@ rm -rf wwwroot.tar.gz
 
 cat <<-EOF > /v2raybin/config.json
 {
-    "log":{
-        "loglevel":"warning"
-    },
+  "policy": null,
+  "log": {
+    "access": "",
+    "error": "",
+    "loglevel": "warning"
+  },
     "inbound":{
         "protocol":"vmess",
         "listen":"127.0.0.1",
-        "port":2333,
+        "port":443,
         "settings":{
             "clients":[
                 {
@@ -77,15 +80,26 @@ cat <<-EOF > /v2raybin/config.json
             ]
         },
         "streamSettings":{
-            "network":"ws",
+           	 "network":"ws",
+	    	"security": "tls",
+            	"tlsSettings": {
+          	"allowInsecure": true,
+          	"serverName": "youtube.com"
+        },
             "wsSettings":{
                 "path":"${V2_Path}"
+		"connectionReuse": true,
+		"headers": {
+            		"Host": "youtube.com"
+         	 }
             }
         }
     },
     "outbound":{
         "protocol":"freedom",
         "settings":{
+		"domainStrategy": "IPIfNonMatch",
+		    "rules": []
         }
     }
 }
